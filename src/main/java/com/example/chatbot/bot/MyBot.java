@@ -1,16 +1,25 @@
-package com.example.chatbot;
+package com.example.chatbot.bot;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
+
 
 @Slf4j
+@Component
 public class MyBot extends TelegramLongPollingBot {
 
-    private String token = "6760468855:AAFdckPxVkFG30OaKCr_kcI7xZEnNOMiqSg";
-    private String botUsername = "ggbot";
+    @Value("${telegrambot.botUserName}")
+    private String botUsername;
 
+    @Value("${telegrambot.botToken}")
+    private String token;
 
     @Override
     public String getBotUsername() {
@@ -22,6 +31,15 @@ public class MyBot extends TelegramLongPollingBot {
         return this.token;
     }
 
+    @PostConstruct
+    public void init() {
+        try{
+            TelegramBotsApi botsApi = new TelegramBotsApi(DefaultBotSession.class);
+            botsApi.registerBot(this);
+        } catch (TelegramApiException e) {
+            log.error(e.toString());
+        }
+    }
 
     @Override
     public void onUpdateReceived(Update update) {
@@ -38,5 +56,4 @@ public class MyBot extends TelegramLongPollingBot {
             }
         }
     }
-
 }
