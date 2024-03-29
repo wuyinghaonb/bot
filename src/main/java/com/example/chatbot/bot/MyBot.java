@@ -7,8 +7,10 @@ import com.google.gson.Gson;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -34,6 +36,9 @@ public class MyBot extends TelegramLongPollingBot implements TelegramApiService 
     @Value("${telegrambot.botToken}")
     private String token;
 
+//    @Autowired
+//    private RestTemplate restTemplate;
+
     @Override
     public String getBotUsername() {
         return this.botUsername;
@@ -44,8 +49,7 @@ public class MyBot extends TelegramLongPollingBot implements TelegramApiService 
         return this.token;
     }
 
-    private ExecutorService executorService = Executors.newFixedThreadPool(10);
-    private final OkHttpClient client = new OkHttpClient.Builder().build();
+    private ExecutorService executorService = Executors.newFixedThreadPool(5);
 
     @PostConstruct
     public void init() {
@@ -60,13 +64,15 @@ public class MyBot extends TelegramLongPollingBot implements TelegramApiService 
     @Override
     public void onUpdatesReceived(List<Update> updates) {
         for (Update update : updates) {
-            CompletableFuture.runAsync(() -> {
-                try {
-                    this.onUpdateReceived(update);
-                } catch (Exception e) {
-                    log.error("An error occurred while processing message: ", e);
-                }
-            });
+   //    this.onUpdateReceived(update);
+//            CompletableFuture.runAsync(() -> {
+//                this.onUpdateReceived(update);
+//            },executorService).exceptionally(e -> {
+//                // 异常处理代码
+//                log.error("异步任务异常", e);
+//                return null;
+//            });
+            executorService.submit(()->this.onUpdateReceived(update));
         }
     }
 
@@ -97,6 +103,8 @@ public class MyBot extends TelegramLongPollingBot implements TelegramApiService 
                         .post(r)
                         .build();
                 log.info("requestMap" + gson.toJson(requestMap));
+
+                OkHttpClient client = new OkHttpClient();
 
                 try (Response response = client.newCall(request).execute()) {
                     if (response.body() != null) {

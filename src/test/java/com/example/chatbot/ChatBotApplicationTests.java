@@ -59,6 +59,9 @@ public class ChatBotApplicationTests {
         long endTime = System.currentTimeMillis(); // 获取程序结束时间
         long elapsedTime = endTime - startTime; // 计算程序运行时间
         System.out.println("程序运行时间：" + elapsedTime + " 毫秒");
+        while(true){
+
+        }
 
         // 验证模拟对象的方法被调用了预期次数
     //        verify(telegramApiService, times(10)).execute(any(SendMessage.class));
