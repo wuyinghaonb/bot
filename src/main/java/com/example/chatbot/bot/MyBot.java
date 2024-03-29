@@ -12,16 +12,21 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 
 @Slf4j
 @Component
-public class MyBot extends TelegramLongPollingBot {
+public class MyBot extends TelegramLongPollingBot implements TelegramApiService {
 
     @Value("${telegrambot.botUserName}")
     private String botUsername;
@@ -39,6 +44,9 @@ public class MyBot extends TelegramLongPollingBot {
         return this.token;
     }
 
+    private ExecutorService executorService = Executors.newFixedThreadPool(10);
+    private final OkHttpClient client = new OkHttpClient.Builder().build();
+
     @PostConstruct
     public void init() {
         try {
@@ -50,8 +58,21 @@ public class MyBot extends TelegramLongPollingBot {
     }
 
     @Override
+    public void onUpdatesReceived(List<Update> updates) {
+        for (Update update : updates) {
+            CompletableFuture.runAsync(() -> {
+                try {
+                    this.onUpdateReceived(update);
+                } catch (Exception e) {
+                    log.error("An error occurred while processing message: ", e);
+                }
+            });
+        }
+    }
+
+
+    @Override
     public void onUpdateReceived(Update update) {
-        // We check if the update has a message and the message has text
         if (update.hasMessage() && update.getMessage().hasText()) {
             String content = update.getMessage().getText();
             // todo 指令响应
@@ -59,7 +80,6 @@ public class MyBot extends TelegramLongPollingBot {
 
             } else {
                 // todo chatgpt 打算发送给消息队列
-                OkHttpClient client = new OkHttpClient();
                 // 设置媒体类型。此处为json格式的媒体类型
                 MediaType MEDIA_TYPE_JSON = MediaType.parse("application/json; charset=utf-8");
                 // 请求体
@@ -76,7 +96,7 @@ public class MyBot extends TelegramLongPollingBot {
                         .addHeader("api-key", "ca33fab4-8f9f-458c-beda-16923167bb61")
                         .post(r)
                         .build();
-                log.info(gson.toJson(requestMap));
+                log.info("requestMap" + gson.toJson(requestMap));
 
                 try (Response response = client.newCall(request).execute()) {
                     if (response.body() != null) {
@@ -94,9 +114,15 @@ public class MyBot extends TelegramLongPollingBot {
 
             try {
                 execute(message); // Call method to send the message
-            } catch (TelegramApiException e) {
+            } catch (Exception e) {
                 log.error(e.toString());
             }
         }
+    }
+
+    @Override
+    public Message execute(SendMessage sendMessage) throws TelegramApiException {
+        log.info(sendMessage.getText());
+        return null;
     }
 }
