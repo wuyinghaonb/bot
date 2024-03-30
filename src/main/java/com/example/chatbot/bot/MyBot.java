@@ -1,43 +1,33 @@
 package com.example.chatbot.bot;
 
-import com.example.chatbot.chatgpt.ChatgptDto;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 
 @Slf4j
 @Component
-public class MyBot extends TelegramLongPollingBot{
+public class MyBot extends TelegramLongPollingBot {
 
     @Value("${telegrambot.botUserName}")
     private String botUsername;
 
     @Value("${telegrambot.botToken}")
     private String token;
-
-//    @Autowired
-//    private RestTemplate restTemplate;
 
     @Override
     public String getBotUsername() {
@@ -49,13 +39,22 @@ public class MyBot extends TelegramLongPollingBot{
         return this.token;
     }
 
-    private ExecutorService executorService = Executors.newFixedThreadPool(5);
+    @Override
+    public void onUpdateReceived(Update update) {
+    }
+
+    @Resource
+    private RedisTemplate<String, String> redisTemplate;
+
+    private ExecutorService executorService = Executors.newFixedThreadPool(1);
+    private final Gson gson = new Gson();
 
     @PostConstruct
     public void init() {
         try {
             TelegramBotsApi botsApi = new TelegramBotsApi(DefaultBotSession.class);
             botsApi.registerBot(this);
+            executorService.submit(this::send);
         } catch (TelegramApiException e) {
             log.error(e.toString());
         }
@@ -64,66 +63,20 @@ public class MyBot extends TelegramLongPollingBot{
     @Override
     public void onUpdatesReceived(List<Update> updates) {
         for (Update update : updates) {
-   //    this.onUpdateReceived(update);
-//            CompletableFuture.runAsync(() -> {
-//                this.onUpdateReceived(update);
-//            },executorService).exceptionally(e -> {
-//                // 异常处理代码
-//                log.error("异步任务异常", e);
-//                return null;
-//            });
-            executorService.submit(()->this.onUpdateReceived(update));
+            redisTemplate.opsForList().rightPush("CommonMessage", gson.toJson(update));
         }
     }
 
-
-    @Override
-    public void onUpdateReceived(Update update) {
-        if (update.hasMessage() && update.getMessage().hasText()) {
-            String content = update.getMessage().getText();
-            // todo 指令响应
-            if (content.startsWith("/")) {
-
-            } else {
-                // todo chatgpt 打算发送给消息队列
-                // 设置媒体类型。此处为json格式的媒体类型
-                MediaType MEDIA_TYPE_JSON = MediaType.parse("application/json; charset=utf-8");
-                // 请求体
-                Object[] messages = new Object[1];
-                messages[0] = ImmutableMap.of("role", "user", "content", content);
-                Map<String, Object> requestMap = ImmutableMap.of("messages", messages);
-
-                // 构建请求
-                Gson gson = new Gson();
-                RequestBody r = RequestBody.create(gson.toJson(requestMap), MEDIA_TYPE_JSON);
-                Request request = new Request.Builder()
-                        .url("https://chatgpt.hkbu.edu.hk/general/rest" + "/deployments/" + "gpt-35-turbo" +
-                                "/chat/completions/?api-version=" + "2023-12-01-preview")
-                        .addHeader("api-key", "ca33fab4-8f9f-458c-beda-16923167bb61")
-                        .post(r)
-                        .build();
-                log.info("requestMap" + gson.toJson(requestMap));
-
-                OkHttpClient client = new OkHttpClient();
-
-                try (Response response = client.newCall(request).execute()) {
-                    if (response.body() != null) {
-                        ObjectMapper objectMapper = new ObjectMapper();
-                        ChatgptDto chatgptDto = objectMapper.readValue(response.body().string(), ChatgptDto.class);
-                        content = chatgptDto.getChoices().get(0).getMessage().getContent();
-                    }
+    public void send() {
+        while (true) {
+            String toSend = redisTemplate.opsForList().leftPop("ReturnMessage");
+            if (toSend != null && !toSend.isEmpty()) {
+                SendMessage message = gson.fromJson(toSend, SendMessage.class);
+                try {
+                    execute(message); // Call method to send the message
                 } catch (Exception e) {
                     log.error(e.toString());
                 }
-            }
-            SendMessage message = new SendMessage(); // Create a SendMessage object with mandatory fields
-            message.setChatId(update.getMessage().getChatId().toString());
-            message.setText(content);
-
-            try {
-                execute(message); // Call method to send the message
-            } catch (Exception e) {
-                log.error(e.toString());
             }
         }
     }

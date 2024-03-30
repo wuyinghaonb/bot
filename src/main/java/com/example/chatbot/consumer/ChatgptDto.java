@@ -1,4 +1,4 @@
-package com.example.chatbot.chatgpt;
+package com.example.chatbot.consumer;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
