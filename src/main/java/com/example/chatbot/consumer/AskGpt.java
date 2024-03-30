@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import com.google.common.util.concurrent.RateLimiter;
 
 import java.util.Map;
 
@@ -33,7 +34,7 @@ public class AskGpt {
                 .addHeader("api-key", "ca33fab4-8f9f-458c-beda-16923167bb61")
                 .post(r)
                 .build();
-        log.info("requestMap" + gson.toJson(requestMap));
+//        log.info("requestMap" + gson.toJson(requestMap));
 
         String res = null;
         try (Response response = client.newCall(request).execute()) {

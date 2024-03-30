@@ -9,6 +9,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Chat;
@@ -28,9 +29,8 @@ public class ChatBotApplicationTests {
     @Mock
     private TelegramApiService telegramApiService;
 
-    @InjectMocks
+    @Autowired
     private MyBot bot;
-
 
     @Test
     public void testBotLoad() throws TelegramApiException {

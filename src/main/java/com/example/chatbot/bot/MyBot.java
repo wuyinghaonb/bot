@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
@@ -21,7 +22,7 @@ import java.util.concurrent.Executors;
 
 @Slf4j
 @Component
-public class MyBot extends TelegramLongPollingBot {
+public class MyBot extends TelegramLongPollingBot implements TelegramApiService {
 
     @Value("${telegrambot.botUserName}")
     private String botUsername;
@@ -80,10 +81,10 @@ public class MyBot extends TelegramLongPollingBot {
             }
         }
     }
-//
-//    @Override
-//    public Message execute(SendMessage sendMessage) throws TelegramApiException {
-//        log.info(sendMessage.getText());
-//        return null;
-//    }
+
+    @Override
+    public Message execute(SendMessage sendMessage) throws TelegramApiException {
+        log.info(sendMessage.getText());
+        return null;
+    }
 }
