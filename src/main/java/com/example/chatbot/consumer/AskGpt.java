@@ -5,14 +5,22 @@ import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import com.google.common.util.concurrent.RateLimiter;
 
 import java.util.Map;
 
 @Slf4j
+@Component
 public class AskGpt {
+
+    private static String token;
+    @Value("${gpt.token}")
+    public void setToken(String token) {
+        AskGpt.token = token;
+    }
 
     private static final OkHttpClient client = new OkHttpClient();
     private static final Gson gson = new Gson();
@@ -31,7 +39,7 @@ public class AskGpt {
         Request request = new Request.Builder()
                 .url("https://chatgpt.hkbu.edu.hk/general/rest" + "/deployments/" + "gpt-35-turbo" +
                         "/chat/completions/?api-version=" + "2023-12-01-preview")
-                .addHeader("api-key", "ca33fab4-8f9f-458c-beda-16923167bb61")
+                .addHeader("api-key", token)
                 .post(r)
                 .build();
 //        log.info("requestMap" + gson.toJson(requestMap));

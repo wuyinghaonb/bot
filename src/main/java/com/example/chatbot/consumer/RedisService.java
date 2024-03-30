@@ -11,10 +11,8 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import static java.lang.Thread.sleep;
 
@@ -26,7 +24,7 @@ public class RedisService {
     private RedisTemplate<String, String> redisTemplate;
     private final ExecutorService executorService = Executors.newFixedThreadPool(4);
     private final Gson gson = new Gson();
-    private final SlidingWindowRateLimiter rateLimiter = new SlidingWindowRateLimiter(60, 60000);
+    private final SlidingWindowRateLimiter rateLimiter = new SlidingWindowRateLimiter(60, 80000);
 
     @PostConstruct
     public void init() {
