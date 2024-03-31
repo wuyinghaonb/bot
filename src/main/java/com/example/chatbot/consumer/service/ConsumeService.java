@@ -1,6 +1,6 @@
-package com.example.chatbot.consumer;
+package com.example.chatbot.consumer.service;
 
-import com.google.common.util.concurrent.RateLimiter;
+import com.example.chatbot.consumer.tool.SlidingWindowRateLimiter;
 import com.google.gson.Gson;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -18,7 +18,10 @@ import static java.lang.Thread.sleep;
 
 @Slf4j
 @Component
-public class RedisService {
+public class ConsumeService {
+
+    @Resource
+    GptService gptService;
 
     @Resource
     private RedisTemplate<String, String> redisTemplate;
@@ -36,15 +39,17 @@ public class RedisService {
     public void execute() {
         while (true) {
             if (rateLimiter.isAllowed()) {
+                // 拉取tg发来的update
                 String message = redisTemplate.opsForList().leftPop("VipMessage");
                 if (message == null) {
                     message = redisTemplate.opsForList().leftPop("CommonMessage");
                 }
+                // 处理
                 if (message != null) {
+                    // 询问gpt
                     Update update = gson.fromJson(message, Update.class);
                     log.info("询问gpt " + update.getMessage().getFrom());
-                    SendMessage send = AskGpt.callGpt(update);
-                    redisTemplate.opsForList().rightPush("ReturnMessage", gson.toJson(send));
+                    gptService.callGpt(update);
                 }
             } else {
                 try {

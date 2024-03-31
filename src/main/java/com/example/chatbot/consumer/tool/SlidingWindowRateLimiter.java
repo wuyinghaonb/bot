@@ -1,4 +1,4 @@
-package com.example.chatbot.consumer;
+package com.example.chatbot.consumer.tool;
 
 import java.time.Instant;
 import java.util.LinkedList;

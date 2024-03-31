@@ -22,7 +22,7 @@ import java.util.concurrent.Executors;
 
 @Slf4j
 @Component
-public class MyBot extends TelegramLongPollingBot implements TelegramApiService {
+public class MyBot extends TelegramLongPollingBot{
 
     @Value("${telegrambot.botUserName}")
     private String botUsername;
@@ -82,9 +82,9 @@ public class MyBot extends TelegramLongPollingBot implements TelegramApiService 
         }
     }
 
-    @Override
-    public Message execute(SendMessage sendMessage) throws TelegramApiException {
-        log.info(sendMessage.getText());
-        return null;
-    }
+//    @Override
+//    public Message execute(SendMessage sendMessage) throws TelegramApiException {
+//        log.info(sendMessage.getText());
+//        return null;
+//    }
 }
