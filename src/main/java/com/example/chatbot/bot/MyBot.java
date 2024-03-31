@@ -65,6 +65,7 @@ public class MyBot extends TelegramLongPollingBot{
         log.info("获取到update");
         for (Update update : updates) {
             redisTemplate.opsForList().rightPush("CommonMessage", gson.toJson(update));
+            log.info("已推送update到redis");
         }
     }
 

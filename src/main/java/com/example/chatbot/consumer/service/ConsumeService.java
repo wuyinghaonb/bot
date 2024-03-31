@@ -12,6 +12,8 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.lang.Thread.sleep;
 
@@ -26,6 +28,7 @@ public class ConsumeService {
     private RedisTemplate<String, String> redisTemplate;
     private final ExecutorService executorService = Executors.newFixedThreadPool(4);
     private final Gson gson = new Gson();
+    private final AtomicBoolean flag = new AtomicBoolean(false);
     private final SlidingWindowRateLimiter rateLimiter = new SlidingWindowRateLimiter(60, 80000);
 
     @PostConstruct
@@ -38,19 +41,22 @@ public class ConsumeService {
     public void execute() {
         while (true) {
             if (rateLimiter.isAllowed()) {
-                // 拉取tg发来的update
-//                synchronized (){
-//
-//                }
-                String message = redisTemplate.opsForList().leftPop("VipMessage");
+                String message = null;
+                if (!flag.getAndSet(true)){
+                    log.info("消费者尝试拉取vip消息");
+                    message = redisTemplate.opsForList().leftPop("VipMessage",1, TimeUnit.MINUTES);
+                    flag.set(false);
+                }
                 if (message == null) {
-                    message = redisTemplate.opsForList().leftPop("CommonMessage");
+                    log.info("消费者尝试拉取消息");
+                    message = redisTemplate.opsForList().leftPop("CommonMessage",1, TimeUnit.MINUTES);
                 }
                 // 处理
                 if (message != null) {
                     // 询问gpt
+                    log.info("拉取成功");
                     Update update = gson.fromJson(message, Update.class);
-                    log.info("询问gpt " + update.getMessage().getFrom());
+                    log.info("询问gpt " + update.getMessage());
                     gptService.callGpt(update);
                 }
             } else {
