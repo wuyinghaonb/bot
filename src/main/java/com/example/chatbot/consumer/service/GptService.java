@@ -18,10 +18,19 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.*;
 
 @Slf4j
 @Component
 public class GptService {
+
+    private final ExecutorService executorService = new ThreadPoolExecutor(
+            1, // 核心线程数
+            10, // 最大线程数
+            60L, // 非核心线程的空闲存活时间
+            TimeUnit.SECONDS, // 时间单位
+            new LinkedBlockingQueue<Runnable>() // 工作队列
+    );
 
     private final String systemContent = "You are ChefBot, a dedicated digital gourmet guide and culinary" +
             " assistant. Your purpose is to make cooking an enjoyable and approachable experience for everyone." +
@@ -44,6 +53,10 @@ public class GptService {
     private final Gson gson = new Gson();
 
     public void callGpt(Update update) {
+        executorService.submit(()->execute(update));
+    }
+
+    public void execute(Update update) {
         List<ContextDto> list = getAndUpdateContext(update.getMessage().getFrom().getId(), "user", update.getMessage().getText());
         // 以前的方式
 //        Object[] messages = new Object[1];
@@ -94,7 +107,7 @@ public class GptService {
                 }.getType());
             }
             list.add(new ContextDto(role, content));
-            log.info(String.valueOf(userId), gson.toJson(list));
+            log.info(gson.toJson(list));
             redisTemplate.opsForValue().set(String.valueOf(userId), gson.toJson(list));
         } catch (Exception e) {
             log.info(e.getMessage());

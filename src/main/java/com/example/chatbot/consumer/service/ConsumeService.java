@@ -26,31 +26,31 @@ public class ConsumeService {
 
     @Resource
     private RedisTemplate<String, String> redisTemplate;
-    private final ExecutorService executorService = Executors.newFixedThreadPool(4);
+    private final ExecutorService executorService = Executors.newFixedThreadPool(2);
     private final Gson gson = new Gson();
     private final AtomicBoolean flag = new AtomicBoolean(false);
     private final SlidingWindowRateLimiter rateLimiter = new SlidingWindowRateLimiter(60, 80000);
 
     @PostConstruct
     public void init() {
-        for (int i = 0; i < 4; i++) {
-            executorService.submit(this::execute);
-        }
+        executorService.submit(this::execute);
+        executorService.submit(this::execute);
     }
 
     public void execute() {
         while (true) {
             if (rateLimiter.isAllowed()) {
-                String message = null;
+                String message;
                 if (!flag.getAndSet(true)){
                     log.info("消费者尝试拉取vip消息");
-                    message = redisTemplate.opsForList().leftPop("VipMessage",1, TimeUnit.MINUTES);
+                    message = redisTemplate.opsForList().leftPop("VipMessage",20, TimeUnit.SECONDS);
                     flag.set(false);
+                    if(message == null) {
+                        continue;
+                    }
                 }
-                if (message == null) {
-                    log.info("消费者尝试拉取消息");
-                    message = redisTemplate.opsForList().leftPop("CommonMessage",1, TimeUnit.MINUTES);
-                }
+                log.info("消费者尝试拉取消息");
+                message = redisTemplate.opsForList().leftPop("CommonMessage",20, TimeUnit.SECONDS);
                 // 处理
                 if (message != null) {
                     // 询问gpt

@@ -17,6 +17,7 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 
 @Slf4j
@@ -71,7 +72,7 @@ public class MyBot extends TelegramLongPollingBot{
 
     public void send() {
         while (true) {
-            String toSend = redisTemplate.opsForList().leftPop("ReturnMessage");
+            String toSend = redisTemplate.opsForList().leftPop("ReturnMessage", 10, TimeUnit.SECONDS);
             if (toSend != null && !toSend.isEmpty()) {
                 SendMessage message = gson.fromJson(toSend, SendMessage.class);
                 try {
