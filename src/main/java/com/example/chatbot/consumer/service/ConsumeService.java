@@ -8,7 +8,6 @@ import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.concurrent.ExecutorService;
@@ -40,6 +39,9 @@ public class ConsumeService {
         while (true) {
             if (rateLimiter.isAllowed()) {
                 // 拉取tg发来的update
+//                synchronized (){
+//
+//                }
                 String message = redisTemplate.opsForList().leftPop("VipMessage");
                 if (message == null) {
                     message = redisTemplate.opsForList().leftPop("CommonMessage");

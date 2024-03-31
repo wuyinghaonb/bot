@@ -4,6 +4,7 @@ import com.example.chatbot.consumer.dto.ChatgptDto;
 import com.example.chatbot.consumer.dto.ContextDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -43,18 +44,15 @@ public class GptService {
     private final Gson gson = new Gson();
 
     public void callGpt(Update update) {
-        // 查找上下文
-        List<String> contextList = redisTemplate.opsForList().range("updateId", 0, -1);
-        if(contextList.isEmpty()){
-            // todo 更新缓存，如果chatgpt返回发送的消息就不在这更新，因为最好后更新，统一更新
-            contextList.add(gson.toJson(new ContextDto("system", systemContent)));
-        }
-        contextList.add(gson.toJson(new ContextDto("user", update.getMessage().getText())));
+        List<ContextDto> list = getAndUpdateContext(update.getMessage().getFrom().getId(), "user", update.getMessage().getText());
+        // 以前的方式
+//        Object[] messages = new Object[1];
+//        messages[0] = ImmutableMap.of("role", "user", "content", update.getMessage().getText());
+//        log.info(gson.toJson(messages));
 
         // 设置媒体类型。此处为json格式的媒体类型
         MediaType MEDIA_TYPE_JSON = MediaType.parse("application/json; charset=utf-8");
-        Map<String, Object> requestMap = ImmutableMap.of("messages", contextList);
-        log.info(gson.toJson(contextList));
+        Map<String, Object> requestMap = ImmutableMap.of("messages", list);
         // 构建请求
         RequestBody r = RequestBody.create(gson.toJson(requestMap), MEDIA_TYPE_JSON);
         Request request = new Request.Builder()
@@ -71,14 +69,36 @@ public class GptService {
                 ObjectMapper objectMapper = new ObjectMapper();
                 ChatgptDto chatgptDto = objectMapper.readValue(response.body().string(), ChatgptDto.class);
                 res = chatgptDto.getChoices().get(0).getMessage().getContent();
+                log.info(gson.toJson(chatgptDto.getChoices().get(0).getMessage()));
+                getAndUpdateContext(update.getMessage().getFrom().getId(), "assistant", chatgptDto.getChoices().get(0).getMessage().getContent());
             }
         } catch (Exception e) {
             log.error(e.toString());
         }
-        log.info(res);
         SendMessage message = new SendMessage();
         message.setChatId(update.getMessage().getChatId().toString());
         message.setText(res);
         redisTemplate.opsForList().rightPush("ReturnMessage", gson.toJson(message));
+    }
+
+    public List<ContextDto> getAndUpdateContext(Long userId, String role, String content) {
+        List<ContextDto> list = new ArrayList<>();
+        try {
+            // 获取上下文
+            String context = redisTemplate.opsForValue().get(String.valueOf(userId));
+            if (context == null) {
+                // 初始化
+                list.add(new ContextDto("system", systemContent));
+            } else {
+                list = gson.fromJson(context, new TypeToken<List<ContextDto>>() {
+                }.getType());
+            }
+            list.add(new ContextDto(role, content));
+            log.info(String.valueOf(userId), gson.toJson(list));
+            redisTemplate.opsForValue().set(String.valueOf(userId), gson.toJson(list));
+        } catch (Exception e) {
+            log.info(e.getMessage());
+        }
+        return list;
     }
 }
