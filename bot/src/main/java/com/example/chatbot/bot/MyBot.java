@@ -65,6 +65,10 @@ public class MyBot extends TelegramLongPollingBot{
     public void onUpdatesReceived(List<Update> updates) {
         log.info("获取到update");
         for (Update update : updates) {
+            if(update.getMessage().getText().equals("/init")) {
+                // todo 删除上下文
+                redisTemplate.delete("s");
+            }
             redisTemplate.opsForList().rightPush("CommonMessage", gson.toJson(update));
             log.info("已推送update到redis");
         }
