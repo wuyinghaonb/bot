@@ -8,7 +8,7 @@ MAINTAINER xxxx
 VOLUME /tmp
 
 # 将本地的一个文件或目录，拷贝到容器的文件或目录里
-ADD bot/target/bot-0.0.1-SNAPSHOT.jar /bot-0.0.1-SNAPSHOT.jar
+ADD target/bot-0.0.1-SNAPSHOT.jar /bot-0.0.1-SNAPSHOT.jar
 
 ## 将容器的 5678 端口暴露，给外部访问。
 #EXPOSE 5678
