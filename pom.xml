@@ -11,6 +11,12 @@
     <groupId>com.example</groupId>
     <artifactId>ChatBot</artifactId>
     <version>0.0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <!-- 定义子模块 -->
+    <modules>
+        <module>bot</module>
+        <module>consumer</module>
+    </modules>
     <name>ChatBot</name>
     <description>ChatBot</description>
     <properties>
@@ -20,13 +26,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-devtools</artifactId>
-            <scope>runtime</scope>
-            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -43,21 +42,11 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.telegram</groupId>
-            <artifactId>telegrambots</artifactId>
-            <version>6.9.7.1</version>
-        </dependency>
         <!-- Jakarta Annotations API -->
         <dependency>
             <groupId>jakarta.annotation</groupId>
             <artifactId>jakarta.annotation-api</artifactId>
             <version>2.0.0</version>
-        </dependency>
-        <dependency>
-            <groupId>com.squareup.okhttp3</groupId>
-            <artifactId>okhttp</artifactId>
-            <version>4.9.3</version>
         </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>

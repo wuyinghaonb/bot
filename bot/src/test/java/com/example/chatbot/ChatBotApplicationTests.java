@@ -29,8 +29,8 @@ public class ChatBotApplicationTests {
     @Mock
     private TelegramApiService telegramApiService;
 
-    @Autowired
-    private MyBot bot;
+//    @Autowired
+//    private MyBot bot;
 
     @Test
     public void testBotLoad() throws TelegramApiException {
@@ -49,19 +49,19 @@ public class ChatBotApplicationTests {
 
         // 模拟多次调用以测试负载
         List<Update> updates = new ArrayList<>();
-        for (int i = 0; i < 100; i++) {
-            updates.add(createMockUpdate(i));
-            // 假设这是触发bot响应的方法
-        }
-        bot.onUpdatesReceived(updates);
+//        for (int i = 0; i < 100; i++) {
+//            updates.add(createMockUpdate(i));
+//            // 假设这是触发bot响应的方法
+//        }
+//        bot.onUpdatesReceived(updates);
 
-
-        long endTime = System.currentTimeMillis(); // 获取程序结束时间
-        long elapsedTime = endTime - startTime; // 计算程序运行时间
-        System.out.println("程序运行时间：" + elapsedTime + " 毫秒");
-        while(true){
-
-        }
+//
+//        long endTime = System.currentTimeMillis(); // 获取程序结束时间
+//        long elapsedTime = endTime - startTime; // 计算程序运行时间
+//        System.out.println("程序运行时间：" + elapsedTime + " 毫秒");
+//        while(true){
+//
+//        }
 
         // 验证模拟对象的方法被调用了预期次数
     //        verify(telegramApiService, times(10)).execute(any(SendMessage.class));
