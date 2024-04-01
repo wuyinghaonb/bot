@@ -18,5 +18,5 @@ ENV TZ=Asia/Shanghai
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # 当容器运行起来时执行使用运行jar的指令
-ENTRYPOINT ["java", "-jar", "/bot-0.0.1-SNAPSHOT.jar"]
+ENTRYPOINT ["java", "-jar", "/bot/bot-0.0.1-SNAPSHOT.jar"]
 
