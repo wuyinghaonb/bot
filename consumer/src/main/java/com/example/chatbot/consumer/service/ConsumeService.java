@@ -59,13 +59,14 @@ public class ConsumeService {
                     log.info("询问gpt " + update.getMessage());
                     gptService.callGpt(update);
                 }
-            } else {
-                try {
-                    sleep(1000);
-                } catch (Exception e) {
-                    log.info(e.getMessage());
-                }
             }
+//            else {
+//                try {
+//                    sleep(1000);
+//                } catch (Exception e) {
+//                    log.info(e.getMessage());
+//                }
+//            }
         }
     }
 

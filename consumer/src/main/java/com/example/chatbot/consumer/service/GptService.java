@@ -46,6 +46,9 @@ public class GptService {
     @Value("${gpt.token}")
     private String token;
 
+    @Value("${gpt.version}")
+    private String version;
+
     @Resource
     RedisTemplate<String, String> redisTemplate;
 
@@ -69,7 +72,7 @@ public class GptService {
         // 构建请求
         RequestBody r = RequestBody.create(gson.toJson(requestMap), MEDIA_TYPE_JSON);
         Request request = new Request.Builder()
-                .url("https://chatgpt.hkbu.edu.hk/general/rest" + "/deployments/" + "gpt-35-turbo" +
+                .url("https://chatgpt.hkbu.edu.hk/general/rest" + "/deployments/" + version +
                         "/chat/completions/?api-version=" + "2023-12-01-preview")
                 .addHeader("api-key", token)
                 .post(r)
