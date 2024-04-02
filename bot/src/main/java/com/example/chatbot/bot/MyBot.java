@@ -22,8 +22,8 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Component
-public class MyBot extends TelegramLongPollingBot{
-//cs
+public class MyBot extends TelegramLongPollingBot {
+    //cs
     @Value("${telegrambot.botUserName}")
     private String botUsername;
 
@@ -65,8 +65,7 @@ public class MyBot extends TelegramLongPollingBot{
     public void onUpdatesReceived(List<Update> updates) {
         log.info("获取到update");
         for (Update update : updates) {
-            if(update.getMessage().getText().equals("/reset")) {
-                // todo 删除上下文
+            if (update.getMessage().getText().equals("/reset")) {
                 redisTemplate.delete(String.valueOf(update.getMessage().getFrom().getId()));
                 SendMessage message = new SendMessage();
                 message.setChatId(update.getMessage().getChatId().toString());
@@ -76,9 +75,10 @@ public class MyBot extends TelegramLongPollingBot{
                 } catch (Exception e) {
                     log.error(e.toString());
                 }
+            } else {
+                redisTemplate.opsForList().rightPush("CommonMessage", gson.toJson(update));
+                log.info("已推送update到redis");
             }
-            redisTemplate.opsForList().rightPush("CommonMessage", gson.toJson(update));
-            log.info("已推送update到redis");
         }
     }
 
