@@ -41,16 +41,17 @@ public class ConsumeService {
         while (true) {
             if (rateLimiter.isAllowed()) {
                 String message;
-                if (!flag.getAndSet(true)){
+                if (!flag.getAndSet(true)) {
                     log.info("消费者尝试拉取vip消息");
-                    message = redisTemplate.opsForList().leftPop("VipMessage",20, TimeUnit.SECONDS);
+                    message = redisTemplate.opsForList().leftPop("VipMessage", 20, TimeUnit.SECONDS);
                     flag.set(false);
-                    if(message == null) {
+                    if (message == null) {
                         continue;
                     }
+                } else {
+                    log.info("消费者尝试拉取消息");
+                    message = redisTemplate.opsForList().leftPop("CommonMessage", 20, TimeUnit.SECONDS);
                 }
-                log.info("消费者尝试拉取消息");
-                message = redisTemplate.opsForList().leftPop("CommonMessage",20, TimeUnit.SECONDS);
                 // 处理
                 if (message != null) {
                     // 询问gpt
