@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Component
 public class MyBot extends TelegramLongPollingBot {
-    //cs
+    //测试自动部署
     @Value("${telegrambot.botUserName}")
     private String botUsername;
 
