@@ -66,7 +66,6 @@ public class MyBot extends TelegramLongPollingBot{
         log.info("获取到update");
         for (Update update : updates) {
             if(update.getMessage().getText().equals("/reset")) {
-                // todo 删除上下文
                 redisTemplate.delete(String.valueOf(update.getMessage().getFrom().getId()));
                 SendMessage message = new SendMessage();
                 message.setChatId(update.getMessage().getChatId().toString());

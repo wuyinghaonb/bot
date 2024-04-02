@@ -61,13 +61,6 @@ public class ConsumeService {
                     gptService.callGpt(update);
                 }
             }
-//            else {
-//                try {
-//                    sleep(1000);
-//                } catch (Exception e) {
-//                    log.info(e.getMessage());
-//                }
-//            }
         }
     }
 
