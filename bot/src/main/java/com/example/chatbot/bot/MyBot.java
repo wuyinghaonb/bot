@@ -1,5 +1,6 @@
 package com.example.chatbot.bot;
 
+import com.example.chatbot.bot.service.UserService;
 import com.google.gson.Gson;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
@@ -23,12 +24,14 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Component
 public class MyBot extends TelegramLongPollingBot{
-//c
+    //cs
     @Value("${telegrambot.botUserName}")
     private String botUsername;
 
     @Value("${telegrambot.botToken}")
     private String token;
+    @Resource
+    private UserService userService;
 
     @Override
     public String getBotUsername() {
@@ -66,6 +69,7 @@ public class MyBot extends TelegramLongPollingBot{
         log.info("获取到update");
         for (Update update : updates) {
             if(update.getMessage().getText().equals("/reset")) {
+                // todo 删除上下文
                 redisTemplate.delete(String.valueOf(update.getMessage().getFrom().getId()));
                 SendMessage message = new SendMessage();
                 message.setChatId(update.getMessage().getChatId().toString());
@@ -76,7 +80,12 @@ public class MyBot extends TelegramLongPollingBot{
                     log.error(e.toString());
                 }
             }
-            redisTemplate.opsForList().rightPush("CommonMessage", gson.toJson(update));
+            boolean vipUser = userService.isVipUser(update.getMessage().getChatId());
+            if(vipUser){
+                redisTemplate.opsForList().rightPush("VipMessage", gson.toJson(update));
+            }else {
+                redisTemplate.opsForList().rightPush("CommonMessage", gson.toJson(update));
+            }
             log.info("已推送update到redis");
         }
     }

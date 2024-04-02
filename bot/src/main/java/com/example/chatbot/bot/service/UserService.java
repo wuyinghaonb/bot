@@ -8,9 +8,16 @@ import com.baomidou.mybatisplus.extension.service.IService;
  *  服务类
  * </p>
  *
- * @author  
+ * @author
  * @since 2024-04-02
  */
 public interface UserService extends IService<User> {
+
+    /**
+     * 判断是否为vip用户
+     * @param telegramId
+     * @return
+     */
+    boolean isVipUser(Long telegramId);
 
 }
