@@ -8,6 +8,8 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -32,6 +34,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     Cache<Long, Optional<User>> userCache = CacheBuilder.newBuilder()
             .maximumSize(100).expireAfterAccess(10, TimeUnit.MINUTES).build();
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
     @Override
     public boolean isVipUser(Long telegramId) {
         try {
@@ -54,10 +59,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
 
     public User queryUserById(Long telegramId){
-        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(User::getUser,telegramId);
-        List<User> users = userMapper.selectList(wrapper);
-        if(CollectionUtils.isEmpty(users)){
+        String sql = "SELECT * FROM user WHERE user= ?"; // 假设您的数据库表列名是telegram_id
+
+        List<User> users = jdbcTemplate.query(sql, new Object[]{telegramId}, (rs, rowNum) -> {
+            User user = new User();
+            user.setId(rs.getLong("id")); // 假设有一个id列
+            user.setUser(rs.getLong("user")); // 根据您的数据库列来设置
+            // 设置其他属性...
+            return user;
+        });
+
+        if (CollectionUtils.isEmpty(users)) {
             return null;
         }
         return users.get(0);
