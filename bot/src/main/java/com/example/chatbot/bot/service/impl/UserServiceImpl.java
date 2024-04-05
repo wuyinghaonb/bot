@@ -42,7 +42,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         try {
             Optional<User> optional = userCache.get(telegramId, () -> {
                 User user = queryUserById(telegramId);
-                return Optional.of(user);
+                return Optional.ofNullable(user);
             });
             if(optional == null){
                 return false;
@@ -59,12 +59,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
 
     public User queryUserById(Long telegramId){
-        String sql = "SELECT * FROM user WHERE user= ?"; // 假设您的数据库表列名是telegram_id
+        String sql = "SELECT * FROM user WHERE user= ?";
 
         List<User> users = jdbcTemplate.query(sql, new Object[]{telegramId}, (rs, rowNum) -> {
             User user = new User();
-            user.setId(rs.getLong("id")); // 假设有一个id列
-            user.setUser(rs.getLong("user")); // 根据您的数据库列来设置
+            user.setId(rs.getLong("id"));
+            user.setUser(rs.getLong("user"));
             // 设置其他属性...
             return user;
         });
